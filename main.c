@@ -6,7 +6,6 @@
 int GetXY(int* size, int pos, int* x, int* y){
   *x = pos % size[0];
   *y = pos / size[1];
-  printf("%d, %d (%d)\n", *x, *y, pos);
 }
 
 void NumSet(int* size, int pos, char* p, char flag){
@@ -36,32 +35,73 @@ void NumSet(int* size, int pos, char* p, char flag){
 }
 
 int BoardView(int* size, int len, char* board, char* panel){
-  char label[10] = " 12345678X";
-  printf("\x1b[2J\x1b[0;0H\n   0123456789\n0  ");
+  char label[][10] = {"　", "１", "２", "３", "４", "５", "６", "７", "８", "Ｘ"};
+  printf("\x1b[2J\x1b[0;0H\n   \x1b[2m０１２３４５６７８９\n0\x1b[0m  ");
   int lf = size[0] - 1;
   for(int i = 0; i < len; i++){
     if(panel[i]){
-      printf("\x1b[47m \x1b[0m");
+      printf("\x1b[47m  \x1b[0m");
     }
     else{
-      putchar(label[board[i]]);
+      printf("%s", &label[board[i]][0]);
     }
     if(i == lf){
       putchar('\n');
       if(i != (len - 1)){
-        printf("%d ", i + 1);
+        printf("\x1b[2m%d\x1b[0m ", i + 1);
       }
       lf += size[0];
     }
   }
 }
 
+void OpenPanel(int* size, int pos, int* count, char*board, char* panel){
+  if(!panel[pos]){
+    return;
+  }
+  int x;
+  int y;
+  panel[pos] = 0;
+  *count -= 1;
+  if(board[pos]){
+    return;
+  }
+  GetXY(size, pos, &x, &y);
+  int shifts[4] = {pos - size[0], pos + 1, pos + size[0], pos - 1};
+  for(int i = 0; i < 4; i++){
+    if(
+      (i == 0 && y > 0)
+      || (i == 1 && x < (size[0] - 1))
+      || (i == 2 && y < (size[1] - 1))
+      || (i == 3 && x > 0)
+    ){
+      if(board[shifts[i]] < 9 && panel[shifts[i]] > 0){
+        OpenPanel(size, shifts[i], count, board, panel);
+      }
+    }
+    if(i == 0 || i == 2){
+      for(int j = 0; j < 2; j++){
+        int shift2 = shifts[i] + 1 * (-1 * j);
+        int shift2_x = shift2 % size[0];
+        if(
+          (j == 0 && shift2_x > 0)
+          || (j == 1 && shift2_x < 9)
+        ){
+          if(board[shift2] != 9){
+            OpenPanel(size, shift2, count, board, panel);
+          }
+        }
+      }
+    }
+  }
+}
+
 int MainLoop(int* size, int len, int mine, char* board, char* panel){
-  int panel_num = len;
+  int panel_count = len;
   char str[4];
   int n;
   BoardView(size, len, board, panel);
-  while(panel_num > mine){
+  while(panel_count > mine){
     scanf("%3s", &str[0]);
     n = atoi(str);
     if(n >= len){
@@ -69,8 +109,9 @@ int MainLoop(int* size, int len, int mine, char* board, char* panel){
       printf("0〜%dまでの数値を入力してね！\n", len - 1);
     }
     else{
-      panel[n] = 0;
+      OpenPanel(size, n, &panel_count, board, panel);
       BoardView(size, len, board, panel);
+      printf("%d / %d\n", mine, panel_count);
       if(board[n] == 9){
         return 1;
       }
