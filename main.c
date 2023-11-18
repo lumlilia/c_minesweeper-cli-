@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-int GetXY(int* size, int pos, int* x, int* y){
+void GetXY(int* size, int pos, int* x, int* y){
   *x = pos % size[0];
   *y = pos / size[1];
 }
@@ -34,7 +34,7 @@ void NumSet(int* size, int pos, char* p, char flag){
   }
 }
 
-int BoardView(int* size, int len, char* board, char* panel){
+void BoardView(int* size, int len, char* board, char* panel){
   char label[][10] = {"　", "１", "２", "３", "４", "５", "６", "７", "８", "Ｘ"};
   printf("\x1b[2J\x1b[0;0H\n   \x1b[2m０１２３４５６７８９\n0\x1b[0m  ");
   int lf = size[0] - 1;
@@ -62,7 +62,7 @@ void OpenPanel(int* size, int pos, int* count, char*board, char* panel){
   int x;
   int y;
   panel[pos] = 0;
-  *count -= 1;
+  (*count)--;
   if(board[pos]){
     return;
   }
@@ -77,18 +77,18 @@ void OpenPanel(int* size, int pos, int* count, char*board, char* panel){
     ){
       if(board[shifts[i]] < 9 && panel[shifts[i]] > 0){
         OpenPanel(size, shifts[i], count, board, panel);
-      }
-    }
-    if(i == 0 || i == 2){
-      for(int j = 0; j < 2; j++){
-        int shift2 = shifts[i] + 1 * (-1 * j);
-        int shift2_x = shift2 % size[0];
-        if(
-          (j == 0 && shift2_x > 0)
-          || (j == 1 && shift2_x < 9)
-        ){
-          if(board[shift2] != 9){
-            OpenPanel(size, shift2, count, board, panel);
+        if(i == 0 || i == 2){
+          for(int j = 0; j < 2; j++){
+            int shift2 = shifts[i] + 1 * (-1 * j);
+            int shift2_x = shift2 % size[0];
+            if(
+              (j == 0 && shift2_x > 0)
+              || (j == 1 && shift2_x < 9)
+            ){
+              if(board[shift2] != 9){
+                OpenPanel(size, shift2, count, board, panel);
+              }
+            }
           }
         }
       }
@@ -102,7 +102,7 @@ int MainLoop(int* size, int len, int mine, char* board, char* panel){
   int n;
   BoardView(size, len, board, panel);
   while(panel_count > mine){
-    scanf("%3s", &str[0]);
+    scanf("%3s\0\n", &str[0]);
     n = atoi(str);
     if(n >= len){
       BoardView(size, len, board, panel);
