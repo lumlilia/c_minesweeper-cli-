@@ -43,7 +43,12 @@ void BoardView(int* size, int len, char* board, char* panel){
       printf("\x1b[47m  \x1b[0m");
     }
     else{
-      printf("%s", &label[board[i]][0]);
+      if(board[i] == 9){
+        printf("\x1b[1m\x1b[91m%s\x1b[0m", &label[board[i]][0]);
+      }
+      else{
+        printf("%s", &label[board[i]][0]);
+      }
     }
     if(i == lf){
       putchar('\n');
@@ -77,17 +82,17 @@ void OpenPanel(int* size, int pos, int* count, char*board, char* panel){
     ){
       if(board[shifts[i]] < 9 && panel[shifts[i]] > 0){
         OpenPanel(size, shifts[i], count, board, panel);
-        if(i == 0 || i == 2){
-          for(int j = 0; j < 2; j++){
-            int shift2 = shifts[i] + 1 * (-1 * j);
-            int shift2_x = shift2 % size[0];
-            if(
-              (j == 0 && shift2_x > 0)
-              || (j == 1 && shift2_x < 9)
-            ){
-              if(board[shift2] != 9){
-                OpenPanel(size, shift2, count, board, panel);
-              }
+        for(int j = 0; j < 2; j++){
+          int shift2 = shifts[i]
+            + ((i == 0 || i == 2) ? 1 : size[0])
+            * (-1 * j);
+          int shift2_x = shift2 % size[0];
+          if((i == 1 || i == 3) && (y == 0 || y > size[1] - 1)){
+            continue;
+          }
+          else if(shift2_x >= 0 || shift2_x < size[0]){
+            if(board[shift2] != 9){
+              OpenPanel(size, shift2, count, board, panel);
             }
           }
         }
